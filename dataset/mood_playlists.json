@@ -1,0 +1,98 @@
+{
+  "Happy": {
+    "title": "Upbeat Vibes",
+    "description": "Songs to make you feel good!",
+    "songs": [
+      {
+        "title": "Happy",
+        "artist": "Pharrell Williams",
+        "url": "https://www.youtube.com/watch?v=y6Sxv-sUYtM"
+      },
+      {
+        "title": "Uptown Funk",
+        "artist": "Mark Ronson ft. Bruno Mars",
+        "url": "https://www.youtube.com/watch?v=OPf0cE4Xm1A"
+      },
+      {
+        "title": "Don't Stop Me Now",
+        "artist": "Queen",
+        "url": "https://www.youtube.com/watch?v=HgzGwrmy-Wc"
+      }
+    ]
+  },
+  "Sad": {
+    "title": "Chilled Out Moods",
+    "description": "Slow, reflective tunes for a mellow day.",
+    "songs": [
+      {
+        "title": "Someone Like You",
+        "artist": "Adele",
+        "url": "https://www.youtube.com/watch?v=hLQl3WQQoQ0"
+      },
+      {
+        "title": "Hurt",
+        "artist": "Johnny Cash",
+        "url": "https://www.youtube.com/watch?v=vt1Pwfnh5pc"
+      }
+    ]
+  },
+  "Angry": {
+    "title": "Anger Release",
+    "description": "Pump-up songs to let it all out.",
+    "songs": [
+      {
+        "title": "Smells Like Teen Spirit",
+        "artist": "Nirvana",
+        "url": "https://www.youtube.com/watch?v=hTWKbfoikeg"
+      },
+      {
+        "title": "Chop Suey!",
+        "artist": "System Of A Down",
+        "url": "https://www.youtube.com/watch?v=CSvFpBOe8eY"
+      }
+    ]
+  },
+  "Neutral": {
+    "title": "Background Sounds",
+    "description": "Music for focus and concentration.",
+    "songs": [
+      {
+        "title": "Lofi Hip Hop Radio",
+        "artist": "Lofi Girl",
+        "url": "https://www.youtube.com/watch?v=jfKfPfy-nmo"
+      }
+    ]
+  },
+  "Relaxed": {
+    "title": "Calm and Serene",
+    "description": "Relax with these peaceful melodies.",
+    "songs": [
+      {
+        "title": "River Flows in You",
+        "artist": "Yiruma",
+        "url": "https://www.youtube.com/watch?v=F-4w_wYnS10"
+      },
+      {
+        "title": "A Day Without Rain",
+        "artist": "Enya",
+        "url": "https://www.youtube.com/watch?v=Y1L5d7-Hk88"
+      }
+    ]
+  },
+  "Energetic": {
+    "title": "High Energy Jams",
+    "description": "Get moving with these power-packed tracks.",
+    "songs": [
+      {
+        "title": "Levels",
+        "artist": "Avicii",
+        "url": "https://www.youtube.com/watch?v=_ovdm2yX4MA"
+      },
+      {
+        "title": "Can't Hold Us",
+        "artist": "Macklemore & Ryan Lewis",
+        "url": "https://www.youtube.com/watch?v=2zL5q1z8l34"
+      }
+    ]
+  }
+}
