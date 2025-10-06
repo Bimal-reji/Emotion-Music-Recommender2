@@ -1,6 +1,7 @@
-Flask
-opencv-python
-deepface
-numpy
-pandas
-gunicorn
+flask==2.3.6
+gunicorn==21.2.0
+deepface==0.0.90
+tensorflow==2.20.0
+tf-keras==2.20.0
+opencv-python-headless==4.8.1.78
+numpy==1.27.0
