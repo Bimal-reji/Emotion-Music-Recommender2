@@ -3,58 +3,451 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Emotion Music Recommender</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <title>Mood Music Recommender</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for a more professional aesthetic */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+        body { 
+            font-family: 'Inter', sans-serif; 
+        }
+        .tab-button.active { 
+            border-color: #4338ca; 
+            color: #4338ca; 
+            font-weight: 600; 
+            box-shadow: 0 2px 0 0 #4338ca; 
+        }
+        .tab-content { 
+            display: none; 
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        .tab-content.active { 
+            display: block; 
+        }
+
+        /* Keyframe animation for a smooth transition */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Style for the video element */
+        #webcam-video video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            /* Mirror the camera for a more natural, "selfie" feel */
+            transform: scaleX(-1);
+        }
+
+        /* Dark Mode specific styles */
+        .dark .tab-button.active {
+            border-color: #818cf8;
+            color: #818cf8;
+            box-shadow: 0 2px 0 0 #818cf8;
+        }
+        .dark .tab-button {
+            color: #9ca3af;
+        }
+        .dark .tab-button:hover {
+            color: #818cf8;
+        }
+    </style>
 </head>
-<body>
-    <div class="container">
-        <header>
-            <h1>Emotion-Based Music Recommender</h1>
-            <div class="theme-toggle">
-                <button id="theme-btn">☀️</button>
+<body class="min-h-screen p-4 sm:p-8 relative overflow-y-auto transition-colors duration-300"
+
+      style="background-image: url('https://images.unsplash.com/photo-1503264116251-35a269479413?auto=format&fit=crop&w=1920&q=80');
+             background-size: cover;
+             background-position: center;
+             background-repeat: no-repeat;">
+
+    <!-- 🔹 Dark overlay for readability -->
+    <div class="absolute top-0 left-0 w-full h-full bg-black/40 dark:bg-black/60 z-[-1]"></div>
+
+    <!-- 🔹 Main content container -->
+    <div class="max-w-2xl mx-auto bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg p-4 md:p-6 rounded-xl shadow-xl relative transition-colors duration-300 scale-95">
+
+        <!-- 🔹 Theme toggle button -->
+        <button id="theme-toggle" 
+                class="absolute top-4 right-4 p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 transition-colors duration-300">
+            <svg id="moon-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+            </svg>
+            <svg id="sun-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24"
+                 stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+            </svg>
+        </button>
+
+        <!-- 🔹 Existing content -->
+        <h1 class="text-3xl font-extrabold mb-6 text-indigo-800 dark:text-indigo-400 text-center">Mood-Based Music Recommender</h1>
+        <p class="text-gray-600 dark:text-gray-400 mb-8 text-center">
+            Detect your emotion via <span class="font-semibold">Webcam, Image Upload, or Text Input</span> to get a personalized playlist recommendation.
+        </p>
+
+        <!-- ✅ Keep all your existing tabs and sections below -->
+
+        <div class="flex border-b-2 border-gray-200 dark:border-gray-700 mb-8">
+            <button id="webcam-tab" class="tab-button py-3 px-4 text-center border-b-4 border-transparent transition-all duration-300 hover:border-indigo-400 flex-1 font-semibold text-gray-700 dark:text-gray-400" onclick="switchTab('webcam')">
+                Live Webcam
+            </button>
+            
+            <button id="upload-tab" class="tab-button py-3 px-4 text-center border-b-4 border-transparent transition-all duration-300 hover:border-indigo-400 flex-1 font-semibold text-gray-700 dark:text-gray-400" onclick="switchTab('upload')">
+                Image Upload
+            </button>
+            <button id="text-tab" class="tab-button py-3 px-4 text-center border-b-4 border-transparent transition-all duration-300 hover:border-indigo-400 flex-1 font-semibold text-gray-700 dark:text-gray-400" onclick="switchTab('text')">
+                Text Mood
+            </button>
+        </div>
+
+        <div id="webcam-content" class="tab-content active text-center">
+            <p class="text-gray-500 dark:text-gray-300 mb-6">Your face will be analyzed every 0.5 seconds to detect live emotion.</p>
+            <div id="webcam-video" class="w-full mx-auto bg-gray-900 dark:bg-gray-900 rounded-xl overflow-hidden shadow-xl flex justify-center items-center" style="height: 360px;">
+                <p class="text-gray-400 dark:text-gray-600">Loading webcam...</p>
             </div>
-        </header>
+            <p id="webcam-message" class="mt-4 font-semibold text-gray-700 dark:text-gray-300"></p>
+        </div>
 
-        <main>
-            <div class="detection-section">
-                <h2>Detect Your Mood</h2>
-                <div class="mode-toggle">
-                    <button id="camera-mode-btn" class="active">Face Cam</button>
-                    <button id="text-mode-btn">Text Input</button>
-                </div>
-
-                <div id="camera-view" class="active-mode">
-                    <video id="webcam-video" autoplay muted></video>
-                    <div class="overlay">
-                        <div class="emotion-label">Detected Emotion: <span id="emotion-text">Neutral</span></div>
-                    </div>
-                </div>
-
-                <div id="text-view" class="inactive-mode">
-                    <input type="text" id="mood-input" placeholder="Enter your mood (e.g., Happy, Sad, Relaxed...)">
-                    <button id="search-btn">Get Music</button>
-                </div>
-
-                <div class="loading-spinner" id="spinner"></div>
+        <div id="upload-content" class="tab-content text-center">
+            <p class="text-gray-500 dark:text-gray-300 mb-6">Upload a photo containing a clear face.</p>
+            <div class="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
+                <input type="file" id="imageFile" accept="image/png, image/jpeg, image/gif" class="block w-full text-sm text-gray-500 dark:text-gray-300
+                    file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0
+                    file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700
+                    dark:file:bg-indigo-900 dark:file:text-indigo-300
+                    hover:file:bg-indigo-100 hover:dark:file:bg-indigo-800 transition duration-200"
+                >
+                <button onclick="uploadImageAndDetectEmotion()" class="w-full sm:w-auto px-8 py-3 bg-indigo-600 dark:bg-indigo-700 text-white font-semibold rounded-full shadow-lg hover:bg-indigo-700 hover:dark:bg-indigo-600 transition duration-200 transform hover:scale-105">
+                    Analyze Photo
+                </button>
             </div>
+            <p id="upload-message" class="mt-4 font-semibold text-gray-700 dark:text-gray-300"></p>
+        </div>
 
-            <div class="recommendation-section">
-                <h2>Recommended Playlist</h2>
-                <div id="playlist-container">
-                    <div class="playlist-card">
-                        <div class="playlist-header">
-                            <h3 id="playlist-title"></h3>
-                            <p id="playlist-desc"></p>
-                        </div>
-                        <ul id="song-list">
-                            </ul>
-                    </div>
-                </div>
+        <div id="text-content" class="tab-content text-center">
+            <p class="text-gray-500 dark:text-gray-300 mb-6">Describe your current mood or activity (e.g., "I'm feeling energized and ready to work out").</p>
+            <div class="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
+                <input type="text" id="moodText" placeholder="Describe your mood..." class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                <button onclick="searchMoodFromText()" class="w-full sm:w-auto px-8 py-3 bg-indigo-600 dark:bg-indigo-700 text-white font-semibold rounded-full shadow-lg hover:bg-indigo-700 hover:dark:bg-indigo-600 transition duration-200 transform hover:scale-105">
+                    Analyze Text
+                </button>
             </div>
-        </main>
+            <p id="text-message" class="mt-4 font-semibold text-gray-700 dark:text-gray-300"></p>
+        </div>
+
+        <div class="mt-10 pt-6 border-t border-gray-300 dark:border-gray-700 text-center">
+            <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">Analysis Result</h2>
+            <div id="result-display" class="bg-gray-50 dark:bg-gray-700 p-6 rounded-xl border border-gray-200 dark:border-gray-600 min-h-[250px] flex flex-col justify-center items-center">
+                <p class="text-gray-500 dark:text-gray-400">Awaiting detection...</p>
+            </div>
+        </div>
+
     </div>
 
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        // Global state for webcam
+ // Global state for webcam
+let videoStream = null;
+let captureInterval = null;
+let isCapturing = false;
+const videoElement = document.createElement('video');
+// Setting attributes right away is often cleaner than manipulating them later
+videoElement.autoplay = true;
+videoElement.muted = true; // Added muted here to prevent audio feedback issues
+
+// Helper function to switch tabs and manage webcam state
+function switchTab(tabName) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.getElementById(tabName + '-content').classList.add('active');
+    document.querySelectorAll('.tab-button').forEach(el => el.classList.remove('active'));
+    document.getElementById(tabName + '-tab').classList.add('active');
+
+    if (tabName !== 'webcam') {
+        stopWebcam();
+    } else {
+        // Only start the webcam if the user is switching TO the webcam tab
+        // The initial start is handled in the DOMContentLoaded event
+        if (!isCapturing) {
+            startWebcam();
+        }
+    }
+}
+
+// --- WEBCAM LOGIC ---
+function startWebcam() {
+    if (isCapturing) return;
+
+    const videoContainer = document.getElementById('webcam-video');
+    videoContainer.innerHTML = '';
+    // videoElement.muted = true; // Muted is now set globally
+    videoContainer.appendChild(videoElement);
+
+    navigator.mediaDevices.getUserMedia({ video: true })
+        .then(stream => {
+            console.log("Webcam stream started ✅");
+            videoStream = stream;
+            videoElement.srcObject = stream;
+            isCapturing = true;
+
+            // Wait for the video to load metadata before setting up the interval
+            videoElement.onloadedmetadata = () => {
+                // Auto face detection every 0.5 seconds
+                captureInterval = setInterval(() => {
+                    sendFrameForDetection();
+                }, 500); // 500ms = 0.5s
+            };
+        })
+        .catch(err => {
+            document.getElementById('webcam-message').textContent =
+                'Error accessing webcam. Please ensure permissions are granted.';
+            document.getElementById('webcam-video').innerHTML = '<p class="text-gray-400 dark:text-gray-600 p-8">Webcam blocked or not available.</p>';
+            console.error("Webcam error: ", err);
+        });
+}
+
+function stopWebcam() {
+    if (videoStream) {
+        videoStream.getTracks().forEach(track => track.stop());
+        videoStream = null;
+    }
+    if (captureInterval) {
+        clearInterval(captureInterval);
+        captureInterval = null;
+    }
+    isCapturing = false;
+    // Removed the "Webcam stream stopped" message from the container on stop,
+    // so it shows the default "Loading webcam..." message again if the user re-enters.
+    // The initial HTML handles the "Loading webcam..."
+    // document.getElementById('webcam-video').innerHTML = '<p class="text-gray-500 dark:text-gray-400 p-8">Webcam stream stopped.</p>'; 
+}
+
+function sendFrameForDetection() {
+    if (!isCapturing || !videoElement.videoWidth) return;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = videoElement.videoWidth;
+    canvas.height = videoElement.videoHeight;
+    const context = canvas.getContext('2d');
+    // Draw the image with the mirroring effect so the saved image matches what the user sees
+    context.save();
+    context.scale(-1, 1);
+    context.drawImage(videoElement, canvas.width * -1, 0, canvas.width, canvas.height);
+    context.restore();
+
+    const base64Image = canvas.toDataURL('image/jpeg');
+
+    fetch('/api/detect_emotion', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: base64Image })
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Clear previous messages on success
+        document.getElementById('webcam-message').textContent = ''; 
+        if (data.success) {
+            // Note: Webcam does not return an imageUrl
+            displayResult(data.emotion, data.playlist, data.random_song, null, 'webcam-message');
+        } else {
+            // Display an error message but keep it discreet for constant updates
+            document.getElementById('webcam-message').textContent = `[Detection Error] ${data.error}`;
+        }
+    })
+    .catch(error => {
+        document.getElementById('webcam-message').textContent = 'Network error. Check console for details.';
+        console.error('Fetch Error:', error);
+    });
+}
+
+// --- IMAGE UPLOAD LOGIC ---
+function uploadImageAndDetectEmotion() {
+    const fileInput = document.getElementById('imageFile');
+    const messageElement = document.getElementById('upload-message');
+
+    messageElement.textContent = 'Processing...';
+    messageElement.className = 'mt-4 font-semibold text-yellow-600 dark:text-yellow-400';
+
+    if (fileInput.files.length === 0) {
+        messageElement.textContent = 'Please select an image file.';
+        messageElement.className = 'mt-4 font-semibold text-red-500 dark:text-red-400';
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', fileInput.files[0]);
+
+    fetch('/api/upload_image', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            messageElement.textContent = 'Image analysis complete.';
+            messageElement.className = 'mt-4 font-semibold text-green-600 dark:text-green-400';
+            displayResult(data.emotion, data.playlist, data.random_song, data.image_url, 'upload-message');
+        } else {
+            messageElement.textContent = `Error: ${data.error}`;
+            messageElement.className = 'mt-4 font-semibold text-red-500 dark:text-red-400';
+            // Clear result display on error
+            document.getElementById('result-display').innerHTML = '<p class="text-red-500 dark:text-red-400">Analysis failed. Please try a different image.</p>';
+        }
+    })
+    .catch(error => {
+        messageElement.textContent = 'An unexpected network error occurred.';
+        messageElement.className = 'mt-4 font-semibold text-red-500 dark:text-red-400';
+        document.getElementById('result-display').innerHTML = '<p class="text-red-500 dark:text-red-400">Analysis failed due to network error.</p>';
+        console.error('Fetch Error:', error);
+    });
+}
+
+// --- TEXT INPUT LOGIC ---
+function searchMoodFromText() {
+    const moodText = document.getElementById('moodText').value.trim();
+    const messageElement = document.getElementById('text-message');
+
+    messageElement.textContent = 'Analyzing text...';
+    messageElement.className = 'mt-4 font-semibold text-yellow-600 dark:text-yellow-400';
+
+    if (moodText.length < 3) {
+        messageElement.textContent = 'Please type a longer description of your mood.';
+        messageElement.className = 'mt-4 font-semibold text-red-500 dark:text-red-400';
+        return;
+    }
+
+    fetch('/api/search_mood', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mood: moodText })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            messageElement.textContent = 'Text analysis complete.';
+            messageElement.className = 'mt-4 font-semibold text-green-600 dark:text-green-400';
+            displayResult(data.emotion, data.playlist, data.random_song, null, 'text-message');
+        } else {
+            messageElement.textContent = `Error: ${data.error}`;
+            messageElement.className = 'mt-4 font-semibold text-red-500 dark:text-red-400';
+            document.getElementById('result-display').innerHTML = '<p class="text-red-500 dark:text-red-400">Analysis failed. Please try again.</p>';
+        }
+    })
+    .catch(error => {
+        messageElement.textContent = 'An unexpected network error occurred.';
+        messageElement.className = 'mt-4 font-semibold text-red-500 dark:text-red-400';
+        document.getElementById('result-display').innerHTML = '<p class="text-red-500 dark:text-red-400">Analysis failed due to network error.</p>';
+        console.error('Fetch Error:', error);
+    });
+}
+
+// --- RESULT DISPLAY - LOGIC CORRECTION APPLIED HERE ---
+function displayResult(emotion, playlist, randomSong, imageUrl, messageId) {
+    const resultDiv = document.getElementById('result-display');
+    resultDiv.innerHTML = '';
+    
+    // Normalize emotion display
+    const formattedEmotion = emotion ? emotion.charAt(0).toUpperCase() + emotion.slice(1).toLowerCase() : 'Unknown';
+
+    // 1. Emotion Display
+    resultDiv.innerHTML += `
+        <div class="mb-4">
+            <p class="text-xl font-bold text-gray-700 dark:text-gray-300">Detected Mood/Emotion:</p>
+            <p class="text-5xl font-extrabold text-indigo-700 dark:text-indigo-400">${formattedEmotion}</p>
+        </div>
+    `;
+    
+    // 2. Image Preview (for upload only)
+    if (imageUrl) {
+        resultDiv.innerHTML += `
+            <div class="mb-6">
+                <p class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">Image Used:</p>
+                <img src="${imageUrl}" alt="Uploaded Image" class="w-full max-w-sm mx-auto rounded-xl shadow-lg border-4 border-indigo-400" />
+            </div>
+        `;
+    }
+    
+    // 3. Playlist Recommendation
+    // The previous check was: if (playlist && playlist.playlist)
+    // Assuming the backend returns an object like { playlist: { name, description }, songs: [...] }
+    if (playlist && playlist.playlist && Array.isArray(playlist.songs)) {
+        const songsList = playlist.songs.map(song =>
+            `<li class="text-sm text-gray-600 dark:text-gray-400">
+                <span class="font-medium">${song.title}</span> by ${song.artist}
+                (<a href="${song.url}" target="_blank" class="text-indigo-500 dark:text-indigo-300 hover:text-indigo-700 hover:dark:text-indigo-400 underline">Listen</a>)
+            </li>`
+        ).join('');
+
+        resultDiv.innerHTML += `
+            <div class="bg-indigo-50 dark:bg-indigo-900 border-l-4 border-indigo-500 dark:border-indigo-400 p-4 rounded-lg shadow-md mt-6 w-full">
+                <p class="text-xl font-bold text-indigo-700 dark:text-indigo-300 mb-2">🎧 Recommended Playlist: ${playlist.playlist.name}</p>
+                <p class="text-sm text-indigo-600 dark:text-indigo-400 mb-3">${playlist.playlist.description}</p>
+                <p class="text-md font-semibold text-indigo-800 dark:text-indigo-200 mt-4">Sample Tracks:</p>
+                <ul class="list-disc list-inside text-left mx-auto max-w-md space-y-1">
+                    ${songsList}
+                </ul>
+            </div>
+        `;
+
+        // 4. Autoplay Song
+        if (randomSong && randomSong.title && randomSong.artist && randomSong.url) {
+            resultDiv.innerHTML += `
+                <div class="mt-4 p-3 bg-fuchsia-100 dark:bg-fuchsia-900 rounded-lg border border-fuchsia-300 dark:border-fuchsia-700 w-full max-w-lg">
+                    <p class="text-sm font-bold text-fuchsia-800 dark:text-fuchsia-300">
+                        ✨ Top Song Suggestion: <span class="font-extrabold">${randomSong.title}</span> by ${randomSong.artist}
+                        (<a href="${randomSong.url}" target="_blank" class="underline hover:no-underline text-fuchsia-700 dark:text-fuchsia-400">Listen Now</a>)
+                    </p>
+                </div>
+            `;
+        }
+    } else {
+         resultDiv.innerHTML += `<p class="text-red-500 dark:text-red-400 mt-4">Could not retrieve a playlist for this emotion.</p>`;
+    }
+}
+// Initial setup on load
+document.addEventListener('DOMContentLoaded', () => {
+    // Set the initial active tab style
+    document.getElementById('webcam-tab').classList.add('active');
+    // Start the webcam immediately upon loading the page to match the default active tab
+    startWebcam();
+});
+
+// --- THEME TOGGLE JS ---
+// ... (Theme toggle code remains unchanged and is already correct) ...
+
+        // --- THEME TOGGLE JS ---
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const htmlElement = document.documentElement;
+        const moonIcon = document.getElementById('moon-icon');
+        const sunIcon = document.getElementById('sun-icon');
+
+        // Check for user's saved preference or system preference
+        const userPrefersDark = localStorage.getItem('theme') === 'dark' || 
+                               (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+        if (userPrefersDark) {
+            htmlElement.classList.add('dark');
+            moonIcon.classList.add('hidden');
+            sunIcon.classList.remove('hidden');
+        }
+
+        themeToggleBtn.addEventListener('click', () => {
+            if (htmlElement.classList.contains('dark')) {
+                htmlElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+                moonIcon.classList.remove('hidden');
+                sunIcon.classList.add('hidden');
+            } else {
+                htmlElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+                moonIcon.classList.add('hidden');
+                sunIcon.classList.remove('hidden');
+            }
+        });
+    </script>
 </body>
-</html>
+
+
+
+</html>  
